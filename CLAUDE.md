@@ -63,5 +63,11 @@ you are an expert in vibe coding givina an introductry tutorial for reasercher a
     - Commits use the GitHub no-reply email (repo-local git config), because the global git email is the bc.edu address.
     - Pushed: the site files plus brief.md, CLAUDE.md and the skill (user approved).
     - Verified live: sources/ and data/parts/ return 404; no console errors.
+- Phase 3 (done 2026-10-15): this folder is now the public repo **MGouda-svg/vibecoded-tutorial**. Pages serves it at https://mgouda-svg.github.io/vibecoded-tutorial/ (root `index.html` landing page, `.nojekyll`, slides at `/slides/`).
+  - `portfolio-maker/` is a **snapshot copy** of D:\HPC\portfolio-demo, without sources/, data/parts/ or .git. It's also served at `/portfolio-maker/`. The live site keeps deploying from MGouda-svg.github.io; re-copy the snapshot only if asked.
+  - Docs: `README.md` (overview, folder map, how the demo ran), `docs/REPRODUCE.md` (guide for other researchers), `portfolio-maker/README.md`. No build log (the user didn't want one).
+  - **PREFLIGHT.md must NOT be in the repo** (user's decision). It's git-ignored, and the first commit was amended and force-pushed to erase it from history. Keep it local only, and don't link to it from public docs.
+  - Git ignores `**/sources/`, `**/data/parts/` and `PREFLIGHT.md`. Commits use the no-reply email (repo-local config).
+  - Open: no license chosen yet (README says to ask the author).
 - Rule: do NOT motivate running AI agents on the HPC cluster (no SSH / login-node / "run on HPC" agent use) anywhere in the slides or demo. SLURM content is allowed only as "AI drafts a job script locally, a human reviews it before submitting" (slides 10–11).
 - Slides name Google Scholar as the example publications source (slides 17, 21–24); keep them that way.
