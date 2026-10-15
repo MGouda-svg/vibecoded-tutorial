@@ -1,0 +1,5 @@
+# private raw material, never publish
+**/sources/
+**/data/parts/
+.claude/settings.local.json
+PREFLIGHT.md

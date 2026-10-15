@@ -1,0 +1,211 @@
+{
+  "name": "Mohamed Al-Begaowe",
+  "nameVariants": [
+    "Mohamed Al-Begaowe",
+    "Mohamed AlBegaowe",
+    "Al-Begaowe",
+    "AlBegaowe",
+    "Albegaowe",
+    "M. AlBegaowe",
+    "M. Al-Begaowe",
+    "Mohamed Al Begaowe",
+    "Al Begaowe"
+  ],
+  "affiliation": "Boston College",
+  "headline": "PhD Researcher in Statistical Physics & Computational Neuroscience | Boston College",
+  "summary": "Physics PhD researcher at Boston College working at the intersection of statistical physics, machine learning theory, and computational neuroscience. I study how neural networks learn and generalize across tasks using replica methods, manifold geometry, and large-scale HPC experiments. I work across the full research stack — from mathematical theory to building reproducible Python pipelines and managing compute workflows on HPC clusters. I collaborate across physics, neuroscience, and ML.",
+  "interests": [
+    "statistical physics",
+    "machine learning theory",
+    "computational neuroscience",
+    "representation learning",
+    "manifold geometry",
+    "multi-task learning"
+  ],
+  "links": {
+    "linkedin": "https://www.linkedin.com/in/mohamed-albegaowe-b6465937a",
+    "scholar": "",
+    "inspire": "https://inspirehep.net/authors/2683744",
+    "arxiv": "",
+    "orcid": "",
+    "github": "https://github.com/MGouda-svg",
+    "email": {
+      "user": "albegaow",
+      "domain": "bc.edu"
+    }
+  },
+  "experience": [
+    {
+      "role": "HPC Systems & Research Computing Assistant",
+      "org": "Boston College",
+      "start": "2026-06",
+      "end": "present",
+      "description": "Support research computing operations on the Andromeda HPC cluster. Automate usage reporting, assist researchers with cluster workflows, and maintain computational infrastructure supporting various research groups.",
+      "source": "linkedin"
+    },
+    {
+      "role": "PhD Researcher",
+      "org": "Boston College — Dept. of Psychology & Neuroscience",
+      "start": "2024-09",
+      "end": "present",
+      "description": "Theoretical and computational study of multi-task neural representations using statistical physics and ML. Supervisor: Dr. Stefano Anzellotti. Investigating multi-task learning in visual recognition through a manifold-theoretic framework, focusing on invariance, separability, and storage capacity of object manifolds in trained neural networks. Implementing experiments in PyTorch; analyzing the geometry of learned representations across systematically varied task configurations.",
+      "source": "cv+linkedin"
+    },
+    {
+      "role": "Graduate Researcher",
+      "org": "Boston College — Dept. of Physics",
+      "start": "2022-10",
+      "end": "2024-08",
+      "description": "Supervisors: Dr. Benedetta Flebus · Dr. Krzysztof Kempa. Co-authored peer-reviewed publication on Non-Hermitian and Liouvillian skin effects in magnetic systems (Physical Review B, 2025). Designed and simulated therapeutic ultrasound–piezoelectric nanoparticle experiments using COMSOL Multiphysics.",
+      "source": "cv+user"
+    },
+    {
+      "role": "Remote Student Training",
+      "org": "JINR (INTEREST Program)",
+      "start": "2021-05",
+      "end": "2021-07",
+      "description": "Project: Investigation and modeling of neutron/X-ray reflection by thin films of polymer nanocomposites. Computational modeling of wave reflection behavior in multilayer nanocomposite thin films.",
+      "source": "cv"
+    }
+  ],
+  "education": [
+    {
+      "degree": "Doctor of Philosophy, Physics/Neuroscience",
+      "institution": "Boston College",
+      "start": "2024-09",
+      "end": "present",
+      "details": "PhD in Physics focusing on computational neuroscience.",
+      "source": "cv+linkedin"
+    },
+    {
+      "degree": "Master of Science, Physics",
+      "institution": "Boston College",
+      "start": "2022-09",
+      "end": "2024-09",
+      "details": "Without thesis. Chestnut Hill, MA, USA.",
+      "source": "cv+linkedin"
+    },
+    {
+      "degree": "Bachelor of Science, Physics",
+      "institution": "Zewail City of Science and Technology",
+      "start": "2018-09",
+      "end": "2022-07",
+      "details": "Physics of Earth & Universe. Specialization: High Energy Physics. Giza, Egypt.",
+      "source": "cv+linkedin"
+    }
+  ],
+  "skills": [
+    "Python",
+    "PyTorch",
+    "Mathematica",
+    "Wolfram Language",
+    "MATLAB",
+    "Bash scripting",
+    "COMSOL Multiphysics",
+    "Finite element method",
+    "Multiphysics modeling",
+    "Self-supervised learning (MMCR, SimCLR)",
+    "Manifold learning",
+    "Deep Neural Networks (DNN)",
+    "Linux (command-line, SSH, file permissions, package management)",
+    "LaTeX",
+    "Excel",
+    "PowerPoint"
+  ],
+  "teaching": [
+    {
+      "role": "Graduate Teaching Assistant",
+      "org": "Boston College — Dept. of Physics",
+      "courses": [
+        {
+          "code": "PHYS4100",
+          "title": "Classical Mechanics",
+          "terms": "Fall 2023"
+        },
+        {
+          "code": "PHYS2100/2050",
+          "title": "Introductory Physics I & Lab: Classical Mechanics",
+          "terms": "Fall 2022, Fall 2024"
+        },
+        {
+          "code": "PHYS2101/2051",
+          "title": "Introduction to Physics II & Lab: Electromagnetism",
+          "terms": "Spring 2023"
+        },
+        {
+          "code": "PHYS1400",
+          "title": "Art of Physics",
+          "terms": "Fall 2023"
+        }
+      ],
+      "start": "2022-09",
+      "end": "2026-04",
+      "description": "Led laboratory sections and tutorials for introductory physics courses covering Classical Mechanics and Electromagnetism. Delivered tutorial sessions to reinforce lecture material, guided students through hands-on experiments, and supported student learning through office hours and grading.",
+      "source": "cv+linkedin"
+    }
+  ],
+  "awards": [
+    {
+      "title": "ERC Mostakbaly Scholarship — Fully Funded Excellence Award",
+      "date": "2018-09",
+      "description": "Competitive national scholarship for outstanding undergraduate students in STEM.",
+      "source": "cv"
+    }
+  ],
+  "publications": [
+    {
+      "title": "Non-Hermitian and Liouvillian skin effects in magnetic systems",
+      "authors": [
+        "Xin Li",
+        "Mohamed Al Begaowe",
+        "Shu Zhang",
+        "Benedetta Flebus"
+      ],
+      "year": 2025,
+      "venue": "Phys. Rev. B 112, 134416",
+      "type": "article",
+      "citations": 10,
+      "arxiv": "2307.15792",
+      "doi": "10.1103/6msp-vbbm",
+      "url": "https://inspirehep.net/literature/2683743",
+      "bibtex": "@article{Li:2023lvd,\n    author = \"Li, Xin and Begaowe, Mohamed Al and Zhang, Shu and Flebus, Benedetta\",\n    title = \"{Non-Hermitian and Liouvillian skin effects in magnetic systems}\",\n    eprint = \"2307.15792\",\n    archivePrefix = \"arXiv\",\n    primaryClass = \"quant-ph\",\n    doi = \"10.1103/6msp-vbbm\",\n    journal = \"Phys. Rev. B\",\n    volume = \"112\",\n    number = \"13\",\n    pages = \"134416\",\n    year = \"2025\"\n}",
+      "source": "inspire"
+    }
+  ],
+  "talks": [
+    {
+      "title": "IAIFI PhD Summer School",
+      "event": "NSF AI Institute for Artificial Intelligence and Fundamental Interactions (IAIFI) Summer School and Workshop",
+      "location": "Cambridge, MA",
+      "date": "2025-07",
+      "kind": "school",
+      "description": "An intensive program at the intersection of AI and fundamental physics. Covered topics including machine learning for physics, generative models, and AI-driven scientific discovery. Hackathon project MMCRepLearn: compared self-supervised methods (MMCR vs. SimCLR) for classification on particle physics datasets using PyTorch.",
+      "source": "cv+linkedin",
+      "end": "2025-08"
+    },
+    {
+      "title": "Wolfram Summer Research Institute (WSRI)",
+      "event": "Wolfram Summer Research Institute, Bentley University",
+      "location": "Waltham, MA",
+      "date": "2026-06",
+      "kind": "program",
+      "description": "Three-week intensive program to design and carry out an original computational research project using the Wolfram Language. The program combines project mentorship with a curriculum of technical lectures, and culminates in a computational essay, a public presentation, and a poster session.",
+      "source": "linkedin",
+      "end": "2026-07"
+    }
+  ],
+  "projects": [
+    {
+      "name": "The-shape-of-a-wrong-answer",
+      "displayName": "The shape of a wrong answer",
+      "description": "During Wolfram Summer Research Institute 2026 (WSRI26) I worked on a project that investigates how a simple neural net (LeNet) tolerates different kinds of perturbations (random vs adversarial) in the input.",
+      "url": "https://github.com/MGouda-svg/The-shape-of-a-wrong-answer",
+      "language": "Wolfram Language",
+      "stars": 0,
+      "updated": "2026-09-11",
+      "topics": [],
+      "source": "github"
+    }
+  ],
+  "updated": "2026-10-15"
+}

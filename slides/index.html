@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe Coding for Researchers</title>
+
+<!-- Fonts: Fraunces (display), Newsreader (body), JetBrains Mono (labels / code) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,600&family=JetBrains+Mono:wght@400;600&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+
+<style>
+/* ===========================================
+   THEME — "Lab Notebook"
+   Beige graph paper, burgundy ink, dark-brown text.
+   Change these variables to re-skin the whole deck.
+   =========================================== */
+:root {
+    --stage-bg: #e6d9c2;          /* letterbox colour around the stage */
+    --slide-bg: #f3e9d6;          /* paper */
+    --paper-hi: rgba(255,252,245,.82); /* card surface */
+    --grid: rgba(123,30,47,.07);  /* graph-paper lines */
+    --ink: #2f221c;               /* main text (dark brown) */
+    --muted: #7d6a59;             /* secondary text */
+    --wine: #801f33;              /* burgundy accent */
+    --wine-soft: rgba(128,31,51,.22);
+    --wine-wash: rgba(128,31,51,.07);
+    --code-bg: #2f221c;           /* dark code panels */
+    --code-ink: #f3e9d6;
+
+    --font-display: 'Fraunces', serif;
+    --font-body: 'Newsreader', serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    --ease: cubic-bezier(.22,1,.36,1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ===========================================
+   FIXED 16:9 STAGE — viewport-base.css (verbatim)
+   =========================================== */
+html,
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+.deck-viewport {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    background: var(--stage-bg, #000);
+}
+.deck-stage {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    transform-origin: 0 0;
+    background: var(--slide-bg, #fff);
+}
+.slide {
+    position: absolute;
+    inset: 0;
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    display: block;
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+    background: var(--slide-bg, #fff);
+}
+.slide.active,
+.slide.visible {
+    visibility: visible;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 1;
+}
+img, video, canvas, svg { max-width: 100%; max-height: 100%; }
+.deck-controls {
+    position: fixed;
+    left: 50%;
+    bottom: 22px;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+@media print {
+    html, body { width: 1920px; height: auto; overflow: visible; background: #fff; }
+    .deck-viewport { position: static; overflow: visible; background: #fff; }
+    .deck-stage { position: static; width: auto; height: auto; transform: none !important; background: none; }
+    .slide {
+        position: relative; display: block !important; visibility: visible !important;
+        opacity: 1 !important; pointer-events: auto !important;
+        width: 1920px; height: 1080px; break-after: page; page-break-after: always;
+    }
+    .slide:last-child { break-after: auto; page-break-after: auto; }
+    .deck-controls { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.2s !important; }
+}
+
+/* ===========================================
+   SLIDE TRANSITIONS — soft cross-fade
+   =========================================== */
+.slide { transition: opacity .9s var(--ease), visibility 0s linear .9s; }
+.slide.active { transition: opacity .9s var(--ease), visibility 0s; }
+
+/* Staggered content reveal. Set --d on an element to control its order. */
+.reveal {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity .9s var(--ease), transform .9s var(--ease);
+    transition-delay: calc(var(--d, 0) * 110ms + 250ms);
+}
+.slide.visible .reveal { opacity: 1; transform: none; }
+
+/* ===========================================
+   PAPER — graph grid, punched holes, margin line
+   =========================================== */
+.slide {
+    color: var(--ink);
+    font-family: var(--font-body);
+    background:
+        linear-gradient(var(--grid) 1px, transparent 1px) 0 0 / 40px 40px,
+        linear-gradient(90deg, var(--grid) 1px, transparent 1px) 0 0 / 40px 40px,
+        radial-gradient(ellipse at 70% 40%, rgba(255,250,240,.7), transparent 60%),
+        var(--slide-bg);
+}
+/* punched holes (drawn with radial gradients so no extra markup is needed) */
+.slide::before {
+    content: ""; position: absolute; left: 78px; top: 0; bottom: 0; width: 34px;
+    background: radial-gradient(circle at 17px 17px, var(--stage-bg) 16px, rgba(0,0,0,.08) 17px, transparent 18px) 0 90px / 34px 216px repeat-y;
+}
+/* burgundy margin line — static on content slides (so it stays put across a section),
+   draws in only on the title and section-divider slides */
+.slide::after {
+    content: ""; position: absolute; left: 200px; top: 0; bottom: 0; width: 2px;
+    background: var(--wine); opacity: .55;
+    transform-origin: top; transform: scaleY(1);
+}
+.slide.title::after,
+.slide.divider::after { transform: scaleY(0); transition: transform 1.4s var(--ease) .1s; }
+.slide.title.visible::after,
+.slide.divider.visible::after { transform: scaleY(1); }
+
+/* ===========================================
+   CONTENT FRAME — header, title, body, footer
+   =========================================== */
+.frame {
+    position: absolute; left: 260px; right: 110px; top: 72px; bottom: 64px;
+    display: flex; flex-direction: column;
+}
+.hd {
+    font-family: var(--font-mono); font-size: 21px; letter-spacing: .06em;
+    color: var(--muted); text-transform: uppercase;
+}
+.hd b { color: var(--wine); font-weight: 600; }
+h2 {
+    font-family: var(--font-display); font-weight: 700; font-size: 70px;
+    line-height: 1.02; letter-spacing: -.02em; margin-top: 22px;
+}
+h2 em { font-style: italic; font-weight: 400; color: var(--wine); }
+.lede {
+    font-family: var(--font-body); font-style: italic; font-size: 30px;
+    color: var(--muted); margin-top: 12px; max-width: 1400px;
+}
+.body { flex: 1; min-height: 0; margin-top: 30px; position: relative; display: flex; flex-direction: column; justify-content: center; padding-bottom: 20px; }
+.ft {
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    font-family: var(--font-mono); font-size: 18px; color: var(--muted);
+    letter-spacing: .04em; padding-top: 14px; border-top: 1px solid var(--wine-soft);
+}
+.ft .pg { color: var(--wine); font-weight: 600; }
+
+/* "In the demo" stamp — links each term to the live demo */
+.demo {
+    margin-left: auto; font-family: var(--font-mono); font-size: 19px; color: var(--wine);
+    border: 1.5px solid var(--wine); border-radius: 999px; padding: 7px 20px;
+    background: rgba(255,252,245,.9); letter-spacing: .02em; text-transform: none;
+}
+.demo b { font-weight: 600; letter-spacing: .08em; }
+
+/* ===========================================
+   COMPONENTS
+   =========================================== */
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: start; }
+.cols.wide-left { grid-template-columns: 1.15fr .85fr; }
+.cols.wide-right { grid-template-columns: .85fr 1.15fr; }
+.g2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 28px; }
+.g3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; }
+.g4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+
+.card {
+    background: var(--paper-hi); border: 1.5px solid var(--wine-soft); border-radius: 14px;
+    padding: 26px 30px; box-shadow: 0 14px 30px -22px rgba(80,30,20,.35);
+}
+.card h3 {
+    font-family: var(--font-display); font-weight: 600; font-size: 33px;
+    line-height: 1.1; letter-spacing: -.01em; margin-bottom: 10px;
+}
+.card h3 .n { font-family: var(--font-mono); font-size: 20px; color: var(--wine); font-weight: 600; display: block; margin-bottom: 8px; letter-spacing: .08em; }
+.card p, .card li { font-size: 26px; line-height: 1.38; }
+.card.accent { border-color: var(--wine); background: rgba(255,250,244,.95); }
+.card.ink { background: var(--wine); color: #fbf3e6; border-color: var(--wine); }
+.card.ink h3 { color: #fff; }
+
+.label {
+    font-family: var(--font-mono); font-size: 19px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--wine); font-weight: 600; margin-bottom: 14px;
+}
+.big { font-family: var(--font-body); font-size: 32px; line-height: 1.42; }
+.big strong, .card strong { font-weight: 500; color: var(--wine); }
+ul.list { list-style: none; }
+ul.list li { position: relative; padding-left: 34px; margin-bottom: 14px; font-size: 28px; line-height: 1.38; }
+ul.list li::before { content: "→"; position: absolute; left: 0; color: var(--wine); font-family: var(--font-mono); }
+.card ul.list li { font-size: 25px; margin-bottom: 10px; padding-left: 30px; }
+
+/* handwritten-style margin note */
+.note {
+    font-family: var(--font-body); font-style: italic; font-size: 29px; color: var(--wine);
+    line-height: 1.3; transform: rotate(-2.5deg);
+}
+.slide.visible .note.reveal { transform: rotate(-2.5deg); }
+
+/* terminal prompt box (light) */
+.prompt {
+    font-family: var(--font-mono); font-size: 24px; line-height: 1.55; color: var(--ink);
+    background: rgba(255,252,245,.85); border: 1.5px solid rgba(128,31,51,.35);
+    border-radius: 14px; padding: 24px 30px; box-shadow: 0 18px 40px -26px rgba(80,30,20,.4);
+    white-space: pre-wrap;
+}
+.prompt .p { color: var(--wine); font-weight: 600; }
+.prompt .dim { color: var(--muted); }
+
+/* code panel (dark) */
+.code {
+    font-family: var(--font-mono); font-size: 21px; line-height: 1.55;
+    background: var(--code-bg); color: var(--code-ink); border-radius: 14px;
+    padding: 26px 30px; white-space: pre; overflow: hidden;
+    box-shadow: 0 22px 44px -26px rgba(40,15,10,.6);
+}
+.code .c { color: #b9a58f; }          /* comment */
+.code .k { color: #f0a3b1; }          /* keyword / directive */
+.code .s { color: #e8c98f; }          /* string / value */
+.code .t { display: block; font-size: 16px; color: #b9a58f; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 12px; }
+
+.chip {
+    display: inline-block; font-family: var(--font-mono); font-size: 20px; color: var(--wine);
+    border: 1.5px solid var(--wine-soft); border-radius: 999px; padding: 6px 18px; margin: 0 10px 10px 0;
+    background: rgba(255,252,245,.8);
+}
+.chip.on { background: var(--wine); color: #fbf3e6; border-color: var(--wine); }
+
+blockquote.q {
+    font-family: var(--font-display); font-style: italic; font-weight: 400; font-size: 46px;
+    line-height: 1.22; letter-spacing: -.01em; color: var(--ink);
+}
+blockquote.q::before { content: "“"; color: var(--wine); font-size: 120px; line-height: 0; vertical-align: -48px; margin-right: 8px; }
+.cite { font-family: var(--font-mono); font-size: 20px; color: var(--muted); margin-top: 22px; letter-spacing: .04em; }
+
+/* ===========================================
+   TITLE SLIDE
+   =========================================== */
+.title .meta { position: absolute; left: 260px; top: 96px; font-family: var(--font-mono); font-size: 22px; color: var(--muted); letter-spacing: .06em; }
+.title .meta b { color: var(--wine); font-weight: 600; }
+.title h1 { position: absolute; left: 256px; top: 250px; font-family: var(--font-display); font-weight: 700; font-size: 168px; line-height: .95; letter-spacing: -.025em; }
+.title h1 em { font-style: italic; font-weight: 400; color: var(--wine); }
+.title .prompt { position: absolute; left: 260px; top: 640px; width: 1180px; font-size: 30px; padding: 30px 36px; }
+.caret { display: inline-block; width: 16px; height: 34px; background: var(--wine); vertical-align: -6px; margin-left: 4px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.title .byline { position: absolute; left: 260px; bottom: 110px; }
+.title .byline b { display: block; font-family: var(--font-display); font-weight: 600; font-size: 44px; }
+.title .byline span { font-size: 28px; font-style: italic; color: var(--muted); }
+.title .note { position: absolute; right: 150px; bottom: 130px; text-align: right; transform: rotate(-4deg); }
+.slide.visible.title .note.reveal { transform: rotate(-4deg); }
+.title .note::before { content: ""; display: block; margin: 0 0 14px auto; width: 180px; height: 2px; background: var(--wine); opacity: .6; }
+
+/* ===========================================
+   SECTION DIVIDERS
+   =========================================== */
+.divider .num {
+    position: absolute; left: 250px; top: 150px; font-family: var(--font-display); font-style: italic;
+    font-weight: 400; font-size: 420px; line-height: 1; color: var(--wine); opacity: .9; letter-spacing: -.04em;
+}
+.divider .what { position: absolute; left: 262px; top: 640px; width: 1300px; }
+.divider .what .hd { margin-bottom: 18px; }
+.divider .what h2 { font-size: 104px; margin: 0; }
+.divider .what p { font-size: 34px; font-style: italic; color: var(--muted); margin-top: 22px; }
+.divider .toc { position: absolute; right: 130px; top: 190px; width: 520px; }
+.divider .toc li { font-family: var(--font-mono); font-size: 22px; color: var(--muted); list-style: none; padding: 14px 0; border-bottom: 1px dashed var(--wine-soft); }
+.divider .toc li b { color: var(--wine); margin-right: 14px; }
+
+/* ===========================================
+   DIAGRAMS (SVG + absolutely positioned nodes)
+   =========================================== */
+.diagram { position: relative; width: 100%; height: 100%; }
+.diagram svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.node {
+    position: absolute; background: var(--paper-hi); border: 1.5px solid var(--wine-soft);
+    border-radius: 14px; padding: 18px 22px; box-shadow: 0 14px 30px -22px rgba(80,30,20,.35);
+}
+.node h4 { font-family: var(--font-display); font-weight: 600; font-size: 30px; line-height: 1.1; }
+.node p { font-size: 22px; line-height: 1.35; color: var(--muted); margin-top: 6px; }
+.node.main { border: 2px solid var(--wine); background: rgba(255,250,244,.97); }
+.node.ink { background: var(--wine); border-color: var(--wine); }
+.node.ink h4, .node.ink p { color: #fbf3e6; }
+.svg-line { stroke: var(--wine); stroke-width: 2.5; fill: none; }
+.svg-dash { stroke: var(--wine); stroke-width: 2.5; fill: none; stroke-dasharray: 8 8; opacity: .7; }
+.svg-label { font-family: 'JetBrains Mono', monospace; font-size: 19px; fill: #801f33; }
+
+/* context window bar */
+.ctx { display: flex; height: 92px; border-radius: 12px; overflow: hidden; border: 2px solid var(--wine); }
+.ctx div { display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 17px; color: #fbf3e6; text-align: center; line-height: 1.15; padding: 0 6px; border-right: 1.5px solid rgba(255,255,255,.35); }
+.ctx .free { background: repeating-linear-gradient(45deg, transparent 0 10px, var(--wine-wash) 10px 20px); color: var(--muted); border-right: 0; }
+
+/* table */
+table.tbl { width: 100%; border-collapse: collapse; font-size: 24px; }
+table.tbl th { font-family: var(--font-mono); font-size: 17px; letter-spacing: .1em; text-transform: uppercase; color: var(--wine); text-align: left; padding: 0 16px 12px; border-bottom: 2px solid var(--wine); }
+table.tbl td { padding: 13px 16px; border-bottom: 1px dashed var(--wine-soft); vertical-align: top; line-height: 1.3; }
+table.tbl td:first-child { font-family: var(--font-mono); color: var(--wine); font-weight: 600; width: 60px; }
+table.tbl td.term { font-family: var(--font-mono); font-size: 20px; color: var(--wine); white-space: nowrap; }
+
+/* ===========================================
+   PRESENTER CHROME (outside the stage)
+   =========================================== */
+.progress { position: fixed; left: 0; bottom: 0; height: 4px; background: var(--wine); width: 0; transition: width .6s var(--ease); z-index: 1000; }
+.notes-panel {
+    position: fixed; left: 16px; right: 16px; bottom: 14px; max-height: 32vh; overflow: auto; z-index: 1001;
+    background: rgba(47,34,28,.95); color: #f3e9d6; font-family: var(--font-body); font-size: 18px; line-height: 1.5;
+    padding: 16px 22px; border-radius: 10px; display: none;
+}
+.notes-panel.show { display: block; }
+.notes-panel b { font-family: var(--font-mono); font-size: 13px; letter-spacing: .1em; color: #f0a3b1; display: block; margin-bottom: 6px; }
+aside.notes { display: none; }
+
+/* inline editing */
+.edit-hotzone { position: fixed; top: 0; left: 0; width: 80px; height: 80px; z-index: 10000; cursor: pointer; }
+.edit-toggle {
+    position: fixed; top: 16px; left: 16px; z-index: 10001; border: 1.5px solid var(--wine); background: #fbf3e6;
+    color: var(--wine); font-family: var(--font-mono); font-size: 14px; padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    opacity: 0; pointer-events: none; transition: opacity .3s ease;
+}
+.edit-toggle.show, .edit-toggle.active { opacity: 1; pointer-events: auto; }
+.edit-toggle.active { background: var(--wine); color: #fbf3e6; }
+body.editing .slide.active [contenteditable="true"]:focus,
+body.editing .deck-stage:focus { outline: none; }
+body.editing .slide.active { box-shadow: inset 0 0 0 4px rgba(128,31,51,.35); }
+</style>
+</head>
+
+<body>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- =====================================================
+     01 — TITLE
+     ===================================================== -->
+<section class="slide title active">
+    <div class="meta reveal" style="--d:0"><b>EXP. 01</b> &nbsp;·&nbsp; tutorial + live demo</div>
+    <h1 class="reveal" style="--d:1">Vibe Coding<br>for <em>Researchers</em></h1>
+    <div class="prompt reveal" style="--d:4"><span class="p">&gt; </span><span id="typed"></span><span class="caret"></span></div>
+    <div class="byline reveal" style="--d:7"><b>Mohamed Al-Begaowe</b><span>Physics PhD student · HPC Graduate Assistant</span></div>
+    <div class="note reveal" style="--d:24">this deck was<br>vibe coded too</div>
+    <aside class="notes">Welcome. Today: what vibe coding is, why it matters for research, the vocabulary (prompts, agents, AGENTS.md, skills, MCP, subagents), then a live demo where we build an academic portfolio site from scratch.</aside>
+</section>
+
+<!-- =====================================================
+     02 — HOOK: THIS DECK WAS VIBE CODED
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>00</b> · Before we start</div>
+    <h2 class="reveal" style="--d:1">These slides were <em>vibe coded.</em></h2>
+    <p class="lede reveal" style="--d:2">I didn't write HTML for this deck. I described what I wanted, and an AI agent built it.</p>
+    <div class="body">
+        <div class="cols">
+            <div class="reveal" style="--d:3">
+                <div class="label">What I typed (lightly trimmed)</div>
+                <div class="prompt"><span class="p">&gt; </span>I want to create a vibecoding tutorial that introduces my audience to the huge world of vibe coding.
+<span class="dim">Structure:</span> 1) a brief intro  2) how it helps researchers  3) terminology (prompt eng, agent.md, skills, MCP, agent…)  4) a demo…
+<span class="dim">Flow:</span> start with vibecoded slides, then a live demo building an academic portfolio webpage.</div>
+            </div>
+            <div class="reveal" style="--d:4">
+                <div class="label">What the agent did next</div>
+                <ul class="list">
+                    <li><strong>Asked me questions</strong>: format, audience, length, demo subject</li>
+                    <li><strong>Wrote a plan</strong>, which I reviewed and approved</li>
+                    <li><strong>Loaded a “slides” skill</strong> with design know-how</li>
+                    <li><strong>Made 3 style previews</strong>, and I picked this one</li>
+                    <li><strong>Built &amp; screenshot-checked</strong> every slide, fixing overlaps</li>
+                </ul>
+                <p class="note reveal" style="--d:8; margin-top:26px">Every term in today's talk was used to make these slides.</p>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Meta moment. The bold words on the right are exactly the vocabulary of section 3: prompt, plan mode, skills, agent loop. Come back to this slide mentally later.</aside>
+</section>
+
+<!-- =====================================================
+     03 — DIVIDER §1
+     ===================================================== -->
+<section class="slide divider">
+    <div class="num reveal">§1</div>
+    <ul class="toc reveal" style="--d:3">
+        <li><b>04</b>A definition</li>
+        <li><b>05</b>From typing to directing</li>
+        <li><b>06</b>The tool landscape</li>
+        <li><b>07</b>Honest caveats</li>
+    </ul>
+    <div class="what">
+        <div class="hd reveal" style="--d:1"><b>Part one</b></div>
+        <h2 class="reveal" style="--d:2">What is vibe coding?</h2>
+        <p class="reveal" style="--d:3">Programming by describing intent, not by typing syntax.</p>
+    </div>
+    <aside class="notes">Part one, about 5 minutes.</aside>
+</section>
+
+<!-- =====================================================
+     04 — DEFINITION
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§1</b> · What is vibe coding</div>
+    <h2 class="reveal" style="--d:1">A <em>definition</em></h2>
+    <div class="body">
+        <div class="cols wide-left">
+            <div class="reveal" style="--d:2">
+                <blockquote class="q">There's a new kind of coding I call “vibe coding”, where you fully give in to the vibes, embrace exponentials, and forget that the code even exists.</blockquote>
+                <div class="cite">— Andrej Karpathy, February 2025</div>
+                <p class="big" style="margin-top:44px">By the end of 2025 it was <strong>Collins Dictionary's Word of the Year</strong>. Today it broadly means <em>building software mostly through conversation with an AI.</em></p>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:22px">
+                <div class="card reveal" style="--d:3"><h3><span class="n">01 · DESCRIBE</span>Say what you want</h3><p>In plain language: the goal, the data, the constraints.</p></div>
+                <div class="card reveal" style="--d:4"><h3><span class="n">02 · GENERATE</span>AI writes &amp; runs it</h3><p>Code, files, commands, often in one go.</p></div>
+                <div class="card accent reveal" style="--d:5"><h3><span class="n">03 · STEER</span>Judge the result</h3><p>Look at the output, not the syntax. Give feedback. Repeat.</p></div>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Karpathy's original tweet was half-joking, about weekend projects. The term stuck. Emphasise the loop: describe, generate, steer. Steering is where your expertise as a researcher matters.</aside>
+</section>
+
+<!-- =====================================================
+     05 — THE SHIFT
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§1</b> · What is vibe coding</div>
+    <h2 class="reveal" style="--d:1">From <em>typing</em> code to <em>directing</em> it</h2>
+    <p class="lede reveal" style="--d:2">Each generation of tools takes on a bigger piece of the work.</p>
+    <div class="body">
+        <div class="g4">
+            <div class="card reveal" style="--d:3"><h3><span class="n">~2021</span>Autocomplete</h3><p>Finishes the line you're typing.</p><p style="margin-top:12px;color:var(--muted)">e.g. early GitHub Copilot</p></div>
+            <div class="card reveal" style="--d:4"><h3><span class="n">~2023</span>Chat assistant</h3><p>Answers questions; you copy-paste snippets back and forth.</p><p style="margin-top:12px;color:var(--muted)">e.g. ChatGPT, Claude.ai</p></div>
+            <div class="card reveal" style="--d:5"><h3><span class="n">~2024</span>AI-native editor</h3><p>Edits across many files in your project.</p><p style="margin-top:12px;color:var(--muted)">e.g. Cursor, Copilot edits</p></div>
+            <div class="card ink reveal" style="--d:6"><h3><span class="n" style="color:#f6c9d2">2025 →</span>Autonomous agent</h3><p>Plans, writes, runs, tests and fixes, then reports back.</p><p style="margin-top:12px;opacity:.8">e.g. Claude Code, Codex</p></div>
+        </div>
+        <div class="reveal" style="--d:8;margin-top:46px;display:grid;grid-template-columns:1fr 1fr;gap:56px">
+            <p class="big">Your role moves from <strong>typist</strong> → <strong>reviewer</strong> → <strong>director</strong>.</p>
+            <p class="big">The spectrum runs from <em>pure vibes</em> (accept everything) to <em>AI-assisted engineering</em> (review everything). <strong>For research, aim for the second.</strong></p>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Dates are approximate. The point: the unit of delegation keeps growing, from a line, to a snippet, to files, to a whole task.</aside>
+</section>
+
+<!-- =====================================================
+     06 — LANDSCAPE
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§1</b> · What is vibe coding</div>
+    <h2 class="reveal" style="--d:1">The <em>landscape</em></h2>
+    <p class="lede reveal" style="--d:2">Many tools, same ideas. Learn the concepts once and they transfer.</p>
+    <div class="body">
+        <div class="g4">
+            <div class="card reveal" style="--d:3"><h3><span class="n">IN THE BROWSER</span>Chat + canvas</h3><ul class="list"><li>Claude.ai (Artifacts)</li><li>ChatGPT (Canvas)</li><li>Gemini</li></ul><p style="margin-top:10px;color:var(--muted)">Quick scripts, one-off questions.</p></div>
+            <div class="card reveal" style="--d:4"><h3><span class="n">APP BUILDERS</span>Prompt → app</h3><ul class="list"><li>Lovable</li><li>Bolt</li><li>Replit, v0</li></ul><p style="margin-top:10px;color:var(--muted)">Web apps with zero setup.</p></div>
+            <div class="card reveal" style="--d:5"><h3><span class="n">AI EDITORS</span>IDE + AI</h3><ul class="list"><li>Cursor</li><li>VS Code + Copilot</li><li>Windsurf</li></ul><p style="margin-top:10px;color:var(--muted)">You see and edit the code.</p></div>
+            <div class="card accent reveal" style="--d:6"><h3><span class="n">TERMINAL AGENTS</span>Autonomous</h3><ul class="list"><li>Claude Code</li><li>OpenAI Codex</li><li>Gemini CLI</li></ul><p style="margin-top:10px;color:var(--muted)">Read, edit and run your project files.</p></div>
+        </div>
+        <p class="note reveal" style="--d:9;margin-top:48px;margin-left:12px">Today's demo: Claude Code inside VS Code.</p>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Not an endorsement list, and it changes monthly.</aside>
+</section>
+
+<!-- =====================================================
+     07 — CAVEATS
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§1</b> · What is vibe coding</div>
+    <h2 class="reveal" style="--d:1">Honest <em>caveats</em></h2>
+    <p class="lede reveal" style="--d:2">It's powerful, and it can be confidently wrong.</p>
+    <div class="body">
+        <div class="g2">
+            <div class="card reveal" style="--d:3"><h3><span class="n">01</span>Plausible ≠ correct</h3><p>Invented functions, wrong units, silently dropped rows. Code that runs can still produce the <strong>wrong science</strong>.</p></div>
+            <div class="card reveal" style="--d:4"><h3><span class="n">02</span>Security &amp; privacy</h3><p>Leaked API keys, unsafe dependencies, unpublished data sent to a cloud model. <strong>Know your institution's policy.</strong></p></div>
+            <div class="card reveal" style="--d:5"><h3><span class="n">03</span>Faster isn't guaranteed</h3><p>A 2025 METR study: experienced developers were <strong>19% slower</strong> with AI tools on their own repos, while believing they were ~20% faster.</p></div>
+            <div class="card accent reveal" style="--d:6"><h3><span class="n">04</span>You own the output</h3><p>Your name is on the paper. If you can't <strong>explain and defend</strong> the code, you can't trust the result.</p></div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">METR, July 2025, randomized controlled trial with 16 experienced open-source developers on mature codebases. That doesn't mean AI is useless; it means measure, don't assume. Gains are biggest on unfamiliar tasks and boilerplate.</aside>
+</section>
+
+<!-- =====================================================
+     08 — DIVIDER §2
+     ===================================================== -->
+<section class="slide divider">
+    <div class="num reveal">§2</div>
+    <ul class="toc reveal" style="--d:3">
+        <li><b>09</b>Where research time goes</li>
+        <li><b>10</b>Use cases</li>
+        <li><b>11</b>Before / after: a SLURM job</li>
+        <li><b>12</b>Coders vs non-coders</li>
+        <li><b>13</b>Research hygiene</li>
+    </ul>
+    <div class="what">
+        <div class="hd reveal" style="--d:1"><b>Part two</b></div>
+        <h2 class="reveal" style="--d:2">Why researchers should care</h2>
+        <p class="reveal" style="--d:3">Less time on plumbing, more time on science.</p>
+    </div>
+    <aside class="notes">Part two, about 7 minutes.</aside>
+</section>
+
+<!-- =====================================================
+     09 — TIME SINK
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§2</b> · Why researchers should care</div>
+    <h2 class="reveal" style="--d:1">Where does research time <em>actually</em> go?</h2>
+    <div class="body">
+        <div class="cols wide-right">
+            <div class="reveal" style="--d:2">
+                <div class="label">The work around the work</div>
+                <ul class="list">
+                    <li>Converting and cleaning data formats</li>
+                    <li>Plotting… and re-plotting for reviewer 2</li>
+                    <li>Writing job scripts, fighting the scheduler</li>
+                    <li>One-off analysis scripts nobody can re-run</li>
+                    <li>Porting legacy MATLAB / Fortran code</li>
+                    <li>Websites, posters, forms, admin</li>
+                </ul>
+            </div>
+            <div style="display:flex;flex-direction:column;justify-content:center;gap:40px">
+                <p class="reveal" style="--d:4;font-family:var(--font-display);font-size:62px;line-height:1.12;letter-spacing:-.02em">Vibe coding shrinks the distance between <em style="color:var(--wine)">a research idea</em> and <em style="color:var(--wine)">a working tool.</em></p>
+                <p class="note reveal" style="--d:7">The science stays yours. The plumbing gets delegated.</p>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Ask the audience: hands up if you've spent a full day on a plotting script or a job script. That's the target.</aside>
+</section>
+
+<!-- =====================================================
+     10 — USE CASES
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§2</b> · Why researchers should care</div>
+    <h2 class="reveal" style="--d:1">What researchers <em>build</em> with it</h2>
+    <div class="body">
+        <div class="g4" style="grid-auto-rows:1fr">
+            <div class="card reveal" style="--d:2"><h3>Data pipelines</h3><p>Clean, merge &amp; convert CSV, HDF5, NetCDF, FITS.</p></div>
+            <div class="card reveal" style="--d:3"><h3>Figures</h3><p>Publication-quality plots with one consistent style.</p></div>
+            <div class="card reveal" style="--d:4"><h3>HPC &amp; SLURM</h3><p>Draft job scripts on your laptop; you review before submitting.</p></div>
+            <div class="card reveal" style="--d:5"><h3>Simulations</h3><p>Quick models and prototypes to test an idea first.</p></div>
+            <div class="card reveal" style="--d:6"><h3>Literature tools</h3><p>Parse BibTeX, organise papers, extract tables from PDFs.</p></div>
+            <div class="card reveal" style="--d:7"><h3>Code translation</h3><p>MATLAB / Fortran → Python, with comments and docs.</p></div>
+            <div class="card reveal" style="--d:8"><h3>Reproducibility</h3><p>Tests, READMEs, environment files, notebooks → scripts.</p></div>
+            <div class="card ink reveal" style="--d:9"><h3>Web presence</h3><p>Lab sites, project pages, portfolios. <strong style="color:#fff">← today's demo</strong></p></div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Pick one or two examples from your own physics / HPC work to tell as stories here.</aside>
+</section>
+
+<!-- =====================================================
+     11 — BEFORE / AFTER (SLURM)
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§2</b> · Why researchers should care</div>
+    <h2 class="reveal" style="--d:1">Before / after: <em>drafting a SLURM job script</em></h2>
+    <div class="body">
+        <div class="cols wide-right">
+            <div style="display:flex;flex-direction:column;gap:26px">
+                <div class="card reveal" style="--d:2"><h3><span class="n">BEFORE</span>An afternoon of docs</h3><p>Search “SLURM job array”, copy a colleague's script, guess the flags, fail, read logs, retry.</p></div>
+                <div class="reveal" style="--d:3">
+                    <div class="label">After: one prompt, on your laptop</div>
+                    <div class="prompt" style="font-size:22px"><span class="p">&gt; </span>Write a SLURM array job that runs simulate.py for 100 temperatures between 1 and 5 K. 4 GB and 2 h per task, one log per task, results in results/.</div>
+                </div>
+                <p class="note reveal" style="--d:8">Then ask: “what could go wrong?” (one real bug is hiding in there)</p>
+            </div>
+            <div class="code reveal" style="--d:5"><span class="t">sweep.sbatch · drafted locally · human-reviewed before sbatch</span><span class="c">#!/bin/bash</span>
+<span class="k">#SBATCH</span> --job-name=<span class="s">temp_sweep</span>
+<span class="k">#SBATCH</span> --array=<span class="s">0-99</span>
+<span class="k">#SBATCH</span> --time=<span class="s">02:00:00</span>
+<span class="k">#SBATCH</span> --mem=<span class="s">4G</span>
+<span class="k">#SBATCH</span> --output=<span class="s">logs/%x_%A_%a.out</span>
+
+<span class="c"># map task id 0..99 → temperature 1..5 K</span>
+T=$(python -c <span class="s">"import numpy as np; \
+print(np.linspace(1, 5, 100)[$SLURM_ARRAY_TASK_ID])"</span>)
+
+mkdir -p results logs
+python simulate.py --temperature <span class="s">"$T"</span> \
+    --out <span class="s">"results/run_${SLURM_ARRAY_TASK_ID}.h5"</span></div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Framing: the AI drafts the script locally; no agent runs on the cluster. You read, understand and submit it yourself. Always review generated job scripts: wrong memory or time limits waste allocation. Note the agent picked sensible defaults (log naming %x_%A_%a) a beginner wouldn't know. The hidden bug (deliberate): SLURM opens logs/... before the script runs, so the "mkdir -p logs" inside the script comes too late. The first run fails unless logs/ already exists. Ask the audience to spot it; then show that asking the agent "what could go wrong?" catches it. Verification in action.</aside>
+</section>
+
+<!-- =====================================================
+     12 — CODERS VS NON-CODERS
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§2</b> · Why researchers should care</div>
+    <h2 class="reveal" style="--d:1">Something for <em>everyone</em> in the room</h2>
+    <div class="body">
+        <div class="cols">
+            <div class="card reveal" style="--d:2;display:flex;flex-direction:column">
+                <h3><span class="n">IF YOU RARELY CODE</span>You can now build</h3>
+                <ul class="list" style="margin-top:8px">
+                    <li>Tools you couldn't build before</li>
+                    <li>Learn by asking “why?” and “explain this”</li>
+                    <li>Prototype an idea before hiring a developer</li>
+                </ul>
+                <p style="margin-top:auto;padding-top:20px;border-top:1px dashed var(--wine-soft)"><strong>Watch out:</strong> you can't spot subtle bugs yet. Test against cases where you <em>know</em> the answer.</p>
+            </div>
+            <div class="card accent reveal" style="--d:3;display:flex;flex-direction:column">
+                <h3><span class="n">IF YOU ALREADY CODE</span>You can now skip</h3>
+                <ul class="list" style="margin-top:8px">
+                    <li>Boilerplate, glue code and config files</li>
+                    <li>Documenting and refactoring legacy code</li>
+                    <li>Tests, CI, packaging, and new languages fast</li>
+                </ul>
+                <p style="margin-top:auto;padding-top:20px;border-top:1px dashed var(--wine-soft)"><strong>Watch out:</strong> over-trust and review fatigue. Read the diffs, keep commits small.</p>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Mixed audience: make both groups feel addressed. Both share the same risk: trusting output they haven't verified.</aside>
+</section>
+
+<!-- =====================================================
+     13 — RESEARCH HYGIENE
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§2</b> · Why researchers should care</div>
+    <h2 class="reveal" style="--d:1">Good research hygiene <em>with AI</em></h2>
+    <p class="lede reveal" style="--d:2">Five habits that make vibe-coded research trustworthy.</p>
+    <div class="body">
+        <div class="g3" style="grid-template-columns:repeat(3,1fr)">
+            <div class="card reveal" style="--d:3"><h3><span class="n">01</span>Use git</h3><p>Commit before every AI change. It's your undo button and your audit trail.</p></div>
+            <div class="card reveal" style="--d:4"><h3><span class="n">02</span>Verify</h3><p>Check against analytic results, small cases and unit tests, not vibes.</p></div>
+            <div class="card reveal" style="--d:5"><h3><span class="n">03</span>Protect data</h3><p>No sensitive, unpublished or human-subject data in cloud tools without approval.</p></div>
+            <div class="card reveal" style="--d:6"><h3><span class="n">04</span>Pin environments</h3><p>requirements.txt / environment.yml. Record the tool and model you used.</p></div>
+            <div class="card reveal" style="--d:7"><h3><span class="n">05</span>Disclose</h3><p>Follow journal and funder AI policies. Mention AI assistance in methods.</p></div>
+            <div class="card ink reveal" style="--d:8"><h3>Rule of thumb</h3><p>If it ends up in a paper, a human has read every line of it.</p></div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Mention your institution's / HPC center's specific AI-use or data policy here if one exists.</aside>
+</section>
+
+<!-- =====================================================
+     14 — DIVIDER §3
+     ===================================================== -->
+<section class="slide divider">
+    <div class="num reveal">§3</div>
+    <ul class="toc reveal" style="--d:3">
+        <li><b>15</b>The big picture</li>
+        <li><b>16</b>LLM &amp; context window</li>
+        <li><b>17</b>Prompt engineering</li>
+        <li><b>18</b>Agent</li>
+        <li><b>19</b>Plan mode</li>
+        <li><b>20</b>CLAUDE.md / AGENTS.md</li>
+        <li><b>21</b>Skills</li>
+        <li><b>22</b>MCP</li>
+        <li><b>23</b>Subagents</li>
+    </ul>
+    <div class="what">
+        <div class="hd reveal" style="--d:1"><b>Part three</b></div>
+        <h2 class="reveal" style="--d:2">The vocabulary</h2>
+        <p class="reveal" style="--d:3">Eight terms. Every one appears in the live demo.</p>
+    </div>
+    <aside class="notes">Part three, about 12 minutes. Each slide has an "in the demo" stamp at the bottom; point at it.</aside>
+</section>
+
+<!-- =====================================================
+     15 — MAP
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§3</b> · Vocabulary</div>
+    <h2 class="reveal" style="--d:1">How the pieces <em>fit together</em></h2>
+    <div class="body">
+        <div class="diagram" style="width:1550px;height:640px;flex:none">
+            <svg viewBox="0 0 1550 640" class="reveal" style="--d:6">
+                <defs>
+                    <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#801f33"/></marker>
+                </defs>
+                <path class="svg-line" d="M232 300 L476 300" marker-end="url(#ah)"/>
+                <path class="svg-line" d="M476 345 L232 345" marker-end="url(#ah)"/>
+                <text class="svg-label" x="290" y="285">prompt</text>
+                <text class="svg-label" x="290" y="378">results</text>
+                <path class="svg-dash" d="M570 122 L600 196" marker-end="url(#ah)"/>
+                <path class="svg-dash" d="M860 122 L830 196" marker-end="url(#ah)"/>
+                <path class="svg-line" d="M952 260 L1146 80" marker-start="url(#ah)" marker-end="url(#ah)"/>
+                <path class="svg-line" d="M952 320 L1146 320" marker-start="url(#ah)" marker-end="url(#ah)"/>
+                <path class="svg-line" d="M952 380 L1146 560" marker-start="url(#ah)" marker-end="url(#ah)"/>
+                <path class="svg-line" d="M715 442 L715 496" marker-end="url(#ah)"/>
+            </svg>
+            <div class="node reveal" style="--d:2;left:0;top:250px;width:230px;height:150px"><h4>You</h4><p>the researcher, the director</p></div>
+            <div class="node main reveal" style="--d:3;left:480px;top:200px;width:470px;height:240px">
+                <h4 style="font-size:38px">Agent</h4>
+                <p>an LLM working in a loop: plan → act → observe</p>
+                <p style="margin-top:14px;font-family:var(--font-mono);font-size:18px;color:var(--wine)">[ context window: everything it can “see” ]</p>
+            </div>
+            <div class="node reveal" style="--d:4;left:440px;top:0;width:270px;height:120px"><h4>AGENTS.md</h4><p>always loaded</p></div>
+            <div class="node reveal" style="--d:4;left:730px;top:0;width:270px;height:120px"><h4>Skills</h4><p>loaded on demand</p></div>
+            <div class="node reveal" style="--d:5;left:500px;top:500px;width:430px;height:120px"><h4>Plan mode</h4><p>plan → you approve → act</p></div>
+            <div class="node reveal" style="--d:5;left:1150px;top:10px;width:400px;height:140px"><h4>Built-in tools</h4><p>read / edit files, run terminal commands</p></div>
+            <div class="node ink reveal" style="--d:5;left:1150px;top:250px;width:400px;height:140px"><h4>MCP servers</h4><p>browser, Drive, GitHub, databases…</p></div>
+            <div class="node reveal" style="--d:5;left:1150px;top:490px;width:400px;height:140px"><h4>Subagents</h4><p>parallel helpers with fresh context</p></div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Keep this slide in mind: every following slide zooms into one box. Key idea: everything is about what ends up in the context window.</aside>
+</section>
+
+<!-- =====================================================
+     16 — LLM & CONTEXT WINDOW
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§3</b> · Vocabulary · 1 / 8</div>
+    <h2 class="reveal" style="--d:1">LLM &amp; the <em>context window</em></h2>
+    <div class="body">
+        <div class="g2" style="gap:48px">
+            <div class="reveal" style="--d:2">
+                <div class="label">LLM: the engine</div>
+                <p class="big">A <strong>Large Language Model</strong> predicts the next piece of text (a <em>token</em>, roughly ¾ of a word). Trained on huge amounts of text and code. Claude, GPT and Gemini are LLMs.</p>
+            </div>
+            <div class="reveal" style="--d:3">
+                <div class="label">Context window: its working memory</div>
+                <p class="big">Everything the model can <strong>see right now</strong>: instructions, your messages, files it read, tool output. Today that's roughly <strong>200K–1M tokens</strong>. Anything outside it doesn't exist for the model.</p>
+            </div>
+        </div>
+        <div class="reveal" style="--d:5;margin-top:44px">
+            <div class="label">A typical agent session, filling up</div>
+            <div class="ctx">
+                <div style="width:7%;background:#5a1322">system</div>
+                <div style="width:6%;background:#801f33">AGENTS<br>.md</div>
+                <div style="width:5%;background:#94324a">skills</div>
+                <div style="width:13%;background:#a8485a">your messages</div>
+                <div style="width:28%;background:#b8606f">files it read (CV, code…)</div>
+                <div style="width:19%;background:#c77a86">tool output</div>
+                <div class="free" style="width:22%">free space</div>
+            </div>
+            <p class="note" style="margin-top:22px">Tip: one task per session. When it gets long, start fresh.</p>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="demo"><b>▶ IN THE DEMO</b> · the context fills as the agent reads the CV &amp; profiles</span><span class="pg"></span></div>
+</div>
+<aside class="notes">The context window is the single most useful mental model. Every other term (AGENTS.md, skills, MCP, subagents) is a way of managing what goes into it.</aside>
+</section>
+
+<!-- =====================================================
+     17 — PROMPT ENGINEERING
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§3</b> · Vocabulary · 2 / 8</div>
+    <h2 class="reveal" style="--d:1">Prompt <em>engineering</em></h2>
+    <p class="lede reveal" style="--d:2">Writing instructions the way you'd brief a smart new colleague who knows nothing about your project.</p>
+    <div class="body">
+        <div class="cols" style="grid-template-columns:.62fr 1.38fr;gap:44px">
+            <div style="display:flex;flex-direction:column;gap:22px">
+                <div class="reveal" style="--d:3">
+                    <div class="label">Weak</div>
+                    <div class="prompt" style="opacity:.75"><span class="p">&gt; </span>make me a website</div>
+                </div>
+                <div class="reveal" style="--d:6">
+                    <div class="label" style="margin-top:12px">The ingredients</div>
+                    <span class="chip on">context</span><span class="chip on">goal</span><span class="chip on">inputs</span><span class="chip on">constraints</span><span class="chip on">done-when</span><span class="chip">examples</span>
+                </div>
+                <p class="note reveal" style="--d:8">The first answer is a draft. Iterate.</p>
+            </div>
+            <div class="reveal" style="--d:4">
+                <div class="label">Strong</div>
+                <div class="prompt" style="font-size:22px"><span class="p">&gt; </span><span class="dim">[context]</span> I'm a physics PhD student. Build me a
+  one-page academic portfolio.
+<span class="dim">[inputs]</span> cv.pdf, my GitHub and Google Scholar profiles.
+<span class="dim">[goal]</span> Sections: bio, research, publications, projects,
+  contact.
+<span class="dim">[constraints]</span> Plain HTML/CSS, no frameworks, mobile-friendly,
+  accessible, deployable to GitHub Pages.
+<span class="dim">[done-when]</span> No console errors, and you've checked it
+  in a browser at phone and desktop widths.</div>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="demo"><b>▶ IN THE DEMO</b> · weak vs strong brief for the portfolio</span><span class="pg"></span></div>
+</div>
+<aside class="notes">"Done-when" is the most underrated ingredient: it lets the agent check its own work. In the demo, I'll first try the weak prompt so we can see the difference.</aside>
+</section>
+
+<!-- =====================================================
+     18 — AGENT
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§3</b> · Vocabulary · 3 / 8</div>
+    <h2 class="reveal" style="--d:1">Agent: <em>an LLM in a loop with tools</em></h2>
+    <div class="body">
+        <div class="cols wide-right" style="grid-template-columns:.9fr 1.1fr">
+            <div class="diagram reveal" style="--d:3;height:600px">
+                <svg viewBox="0 0 600 600">
+                    <defs><marker id="ah2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#801f33"/></marker></defs>
+                    <path class="svg-line" d="M372 96 A 200 200 0 0 1 496 312" marker-end="url(#ah2)"/>
+                    <path class="svg-line" d="M424 440 A 200 200 0 0 1 176 440" marker-end="url(#ah2)"/>
+                    <path class="svg-line" d="M104 312 A 200 200 0 0 1 228 96" marker-end="url(#ah2)"/>
+                    <g font-family="Fraunces, serif" font-weight="600" font-size="30" fill="#2f221c" text-anchor="middle">
+                        <circle cx="300" cy="80" r="70" fill="#fffcf5" stroke="#801f33" stroke-width="2.5"/><text x="300" y="90">Think</text>
+                        <circle cx="473" cy="380" r="70" fill="#801f33"/><text x="473" y="390" fill="#fbf3e6">Act</text>
+                        <circle cx="127" cy="380" r="70" fill="#fffcf5" stroke="#801f33" stroke-width="2.5"/><text x="127" y="390">Observe</text>
+                    </g>
+                    <text x="300" y="275" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="20" fill="#7d6a59">repeat until</text>
+                    <text x="300" y="305" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="20" fill="#7d6a59">the goal is met</text>
+                    <text x="300" y="545" text-anchor="middle" font-family="Newsreader, serif" font-style="italic" font-size="24" fill="#801f33">read file · run code · search · edit</text>
+                </svg>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:26px">
+                <table class="tbl reveal" style="--d:4">
+                    <tr><th></th><th>Chatbot</th><th>Agent</th></tr>
+                    <tr><td>see</td><td>what you paste</td><td>your files &amp; folders</td></tr>
+                    <tr><td>do</td><td>only talks</td><td>edits files, runs commands</td></tr>
+                    <tr><td>errors</td><td>you report them</td><td>reads them &amp; fixes itself</td></tr>
+                    <tr><td>you</td><td>copy &amp; paste</td><td>review &amp; approve</td></tr>
+                </table>
+                <div class="card reveal" style="--d:6"><p><strong>You stay in control:</strong> agents ask permission before risky actions (editing, running commands, using the network), and you choose how much to auto-approve.</p></div>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="demo"><b>▶ IN THE DEMO</b> · it reads, builds, runs, and fixes on its own</span><span class="pg"></span></div>
+</div>
+<aside class="notes">An agent is not a smarter model; it's the same model given tools and a loop. The "observe" step is what lets it fix its own mistakes.</aside>
+</section>
+
+<!-- =====================================================
+     19 — PLAN MODE
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§3</b> · Vocabulary · 4 / 8</div>
+    <h2 class="reveal" style="--d:1">Plan mode: <em>measure twice, cut once</em></h2>
+    <p class="lede reveal" style="--d:2">The agent may explore and ask questions, but it can't change anything until you approve a plan.</p>
+    <div class="body">
+        <div class="cols">
+            <div style="display:flex;flex-direction:column;gap:18px">
+                <div class="card reveal" style="--d:3"><h3><span class="n">01</span>Explore &amp; ask</h3><p>Reads your files, asks clarifying questions.</p></div>
+                <div class="card reveal" style="--d:4"><h3><span class="n">02</span>Propose a plan</h3><p>Steps, files to touch, how it will verify.</p></div>
+                <div class="card accent reveal" style="--d:5"><h3><span class="n">03</span>You review → approve</h3><p>Edit it, push back, or start over. Cheap now, expensive later.</p></div>
+            </div>
+            <div class="reveal" style="--d:6">
+                <div class="label">The real plan behind this deck (excerpt)</div>
+                <div class="code" style="font-size:19px;white-space:pre-wrap"><span class="c"># Plan: Vibe Coding Tutorial — Slide Deck</span>
+
+<span class="k">## Context</span>
+~90-min tutorial, mixed audience of researchers.
+This phase builds only the slides; demo later.
+
+<span class="k">## Approach</span>
+Use the frontend-slides skill → one HTML deck.
+
+<span class="k">## Slide outline</span> (~22 slides)
+§1 What is vibe coding · §2 Why researchers…
+
+<span class="k">## Verification</span>
+Open in browser, step through every slide,
+check no overflow, all 8 terms covered.</div>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="demo"><b>▶ IN THE DEMO</b> · plan the site before a single file is written</span><span class="pg"></span></div>
+</div>
+<aside class="notes">In Claude Code: Shift+Tab cycles into plan mode. Before this deck was built, the agent asked me 6 questions and I corrected the plan once (name + colours).</aside>
+</section>
+
+<!-- =====================================================
+     20 — CLAUDE.md / AGENTS.md
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§3</b> · Vocabulary · 5 / 8</div>
+    <h2 class="reveal" style="--d:1">CLAUDE.md / AGENTS.md: <em>the project's memory</em></h2>
+    <p class="lede reveal" style="--d:2">A plain Markdown file in your project, read automatically at the start of every session.</p>
+    <div class="body">
+        <div class="cols">
+            <div style="display:flex;flex-direction:column;gap:22px">
+                <div class="card reveal" style="--d:3"><h3>Same idea, two names</h3><p><strong>AGENTS.md</strong>: open, cross-tool standard (Codex, Cursor, Copilot, Gemini CLI…).<br><strong>CLAUDE.md</strong>: Claude Code's version.</p></div>
+                <div class="card reveal" style="--d:4"><h3>What goes in it</h3><ul class="list"><li>What the project is &amp; who it's for</li><li>How to build / run / test</li><li>Conventions and hard rules</li></ul></div>
+                <p class="note reveal" style="--d:8">Short and specific beats long and vague: it costs context every session.</p>
+            </div>
+            <div class="reveal" style="--d:5">
+                <div class="label">This project's CLAUDE.md</div>
+                <div class="code" style="white-space:pre-wrap"><span class="k"># project context</span>
+You are an expert in vibe coding, giving an
+introductory tutorial for researchers along
+with a live vibe-coding demo.
+
+<span class="k"># instructions</span>
+1. keep CLAUDE.md updated
+2. <span class="s">don't make assumptions, ask questions</span>
+3. use available skills and tools</div>
+                <p class="big reveal" style="--d:7;margin-top:22px;font-size:26px">Rule 2 is why the agent asked me questions before writing any slides.</p>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="demo"><b>▶ IN THE DEMO</b> · rules for style, privacy &amp; structure</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Think of it as an onboarding doc for the agent. You can also have a personal, user-level one for preferences that apply across all projects.</aside>
+</section>
+
+<!-- =====================================================
+     21 — SKILLS
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§3</b> · Vocabulary · 6 / 8</div>
+    <h2 class="reveal" style="--d:1">Skills: <em>expertise on demand</em></h2>
+    <p class="lede reveal" style="--d:2">A folder of instructions, scripts and references the agent loads only when the task needs it.</p>
+    <div class="body">
+        <div class="cols">
+            <div style="display:flex;flex-direction:column;gap:22px">
+                <div class="card reveal" style="--d:3"><h3>How it stays cheap</h3><p>Only each skill's <strong>name + one-line description</strong> sits in context. The full instructions load <em>when relevant</em>. This is called progressive disclosure.</p></div>
+                <table class="tbl reveal" style="--d:4">
+                    <tr><th></th><th>AGENTS.md</th><th>Skill</th></tr>
+                    <tr><td>when</td><td>always loaded</td><td>on demand</td></tr>
+                    <tr><td>scope</td><td>this project</td><td>reusable anywhere</td></tr>
+                    <tr><td>holds</td><td>rules &amp; facts</td><td>a procedure + tools</td></tr>
+                </table>
+                <p class="note reveal" style="--d:8">This deck: built with a “frontend-slides” skill.</p>
+            </div>
+            <div class="reveal" style="--d:5">
+                <div class="label">academic-portfolio/SKILL.md (we'll write it)</div>
+                <div class="code" style="white-space:pre-wrap;font-size:20px"><span class="c">---</span>
+<span class="k">name:</span> <span class="s">academic-portfolio</span>
+<span class="k">description:</span> <span class="s">Build a static academic
+  portfolio from a CV, Google Scholar and
+  GitHub. Use when asked for a personal
+  research website.</span>
+<span class="c">---</span>
+<span class="k"># Steps</span>
+1. Extract bio, positions, education from CV
+2. Pull publications → BibTeX-style list
+3. Pick top repos; write 1-line summaries
+4. Generate index.html + style.css
+5. Verify in browser; check links
+
+<span class="c">scripts/ · templates/ · references/</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="demo"><b>▶ IN THE DEMO</b> · a design skill + our own portfolio skill</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Skills are an open format (agentskills.io) supported by several agents. You can write your own for your lab's recurring workflows: "process a beamline run", "make a figure in our group style".</aside>
+</section>
+
+<!-- =====================================================
+     22 — MCP
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§3</b> · Vocabulary · 7 / 8</div>
+    <h2 class="reveal" style="--d:1">MCP: <em>“USB-C for AI tools”</em></h2>
+    <p class="lede reveal" style="--d:2">The Model Context Protocol: one open standard for connecting agents to outside apps and data.</p>
+    <div class="body">
+        <div class="cols wide-right" style="grid-template-columns:.85fr 1.15fr">
+            <div style="display:flex;flex-direction:column;gap:22px">
+                <div class="card reveal" style="--d:3"><h3>Why it matters</h3><p>Write a connector once and it works in <strong>many</strong> AI apps. Introduced by Anthropic (Nov 2024), now supported by most major tools.</p></div>
+                <div class="card reveal" style="--d:4"><h3>What it adds</h3><p>Tools the agent can call: <em>open a web page, read a Drive file, create a GitHub repo, query a database.</em></p></div>
+                <div class="card accent reveal" style="--d:5"><p><strong>Careful:</strong> an MCP server acts with <em>your</em> permissions. Install only ones you trust.</p></div>
+            </div>
+            <div class="diagram reveal" style="--d:6;height:620px">
+                <svg viewBox="0 0 800 640">
+                    <g class="svg-line">
+                        <path d="M210 320 L330 320"/>
+                        <path d="M400 320 L520 70"/><path d="M400 320 L520 195"/><path d="M400 320 L520 320"/><path d="M400 320 L520 445"/><path d="M400 320 L520 570"/>
+                    </g>
+                    <rect x="10" y="250" width="200" height="140" rx="14" fill="#fffcf5" stroke="#801f33" stroke-width="2.5"/>
+                    <text x="110" y="315" text-anchor="middle" font-family="Fraunces, serif" font-weight="600" font-size="32" fill="#2f221c">Agent</text>
+                    <text x="110" y="350" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="17" fill="#7d6a59">Claude Code</text>
+                    <rect x="330" y="40" width="70" height="560" rx="35" fill="#801f33"/>
+                    <text x="365" y="320" text-anchor="middle" font-family="JetBrains Mono, monospace" font-weight="600" font-size="26" fill="#fbf3e6" transform="rotate(-90 365 320)" dominant-baseline="middle" letter-spacing="8">MCP</text>
+                    <g font-family="Newsreader, serif" font-size="26" fill="#2f221c">
+                        <rect x="520" y="30" width="270" height="80" rx="12" fill="#fffcf5" stroke="rgba(128,31,51,.35)" stroke-width="1.5"/><text x="545" y="80">Chrome browser</text>
+                        <rect x="520" y="155" width="270" height="80" rx="12" fill="#fffcf5" stroke="rgba(128,31,51,.35)" stroke-width="1.5"/><text x="545" y="205">GitHub</text>
+                        <rect x="520" y="280" width="270" height="80" rx="12" fill="#fffcf5" stroke="rgba(128,31,51,.35)" stroke-width="1.5"/><text x="545" y="330">Google Drive</text>
+                        <rect x="520" y="405" width="270" height="80" rx="12" fill="#fffcf5" stroke="rgba(128,31,51,.35)" stroke-width="1.5"/><text x="545" y="455">Zotero / databases</text>
+                        <rect x="520" y="530" width="270" height="80" rx="12" fill="#fffcf5" stroke="rgba(128,31,51,.35)" stroke-width="1.5"/><text x="545" y="580">Slack, calendar…</text>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="demo"><b>▶ IN THE DEMO</b> · browser reads Scholar &amp; GitHub; GitHub deploys</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Analogy: before USB, every device had its own cable. MCP is the common plug. Spec and server list at modelcontextprotocol.io.</aside>
+</section>
+
+<!-- =====================================================
+     23 — SUBAGENTS
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>§3</b> · Vocabulary · 8 / 8</div>
+    <h2 class="reveal" style="--d:1">Subagents: <em>a team, not a soloist</em></h2>
+    <p class="lede reveal" style="--d:2">The main agent hands off focused jobs to helpers. Each has a fresh context and returns only a summary.</p>
+    <div class="body">
+        <div class="cols" style="grid-template-columns:.8fr 1.2fr">
+            <div style="display:flex;flex-direction:column;gap:22px">
+                <div class="card reveal" style="--d:3"><h3>Why</h3><ul class="list"><li><strong>Parallel</strong>: independent jobs run at once</li><li><strong>Clean context</strong>: the main agent sees results, not the mess</li><li><strong>Specialised</strong>: each can have its own instructions</li></ul></div>
+                <div class="card accent reveal" style="--d:4"><p><strong>Trade-off:</strong> more tokens, so more cost. Use them for big, independent, parallel work.</p></div>
+            </div>
+            <div class="diagram reveal" style="--d:5;height:560px">
+                <svg viewBox="0 0 900 600">
+                    <g class="svg-line"><path d="M450 110 L150 220"/><path d="M450 110 L450 220"/><path d="M450 110 L750 220"/><path d="M150 330 L450 470"/><path d="M450 330 L450 470"/><path d="M750 330 L450 470"/></g>
+                    <rect x="290" y="20" width="320" height="90" rx="14" fill="#801f33"/>
+                    <text x="450" y="76" text-anchor="middle" font-family="Fraunces, serif" font-weight="600" font-size="30" fill="#fbf3e6">Main agent</text>
+                    <g font-family="Fraunces, serif" font-weight="600" font-size="26" fill="#2f221c" text-anchor="middle">
+                        <rect x="40" y="220" width="220" height="110" rx="14" fill="#fffcf5" stroke="#801f33" stroke-width="2"/><text x="150" y="268">Scholar</text><text x="150" y="302" font-family="JetBrains Mono, monospace" font-weight="400" font-size="17" fill="#7d6a59">publications</text>
+                        <rect x="340" y="220" width="220" height="110" rx="14" fill="#fffcf5" stroke="#801f33" stroke-width="2"/><text x="450" y="268">GitHub</text><text x="450" y="302" font-family="JetBrains Mono, monospace" font-weight="400" font-size="17" fill="#7d6a59">top repos</text>
+                        <rect x="640" y="220" width="220" height="110" rx="14" fill="#fffcf5" stroke="#801f33" stroke-width="2"/><text x="750" y="268">CV / LinkedIn</text><text x="750" y="302" font-family="JetBrains Mono, monospace" font-weight="400" font-size="17" fill="#7d6a59">bio &amp; positions</text>
+                    </g>
+                    <rect x="270" y="470" width="360" height="90" rx="14" fill="#fffcf5" stroke="#801f33" stroke-width="2.5" stroke-dasharray="8 6"/>
+                    <text x="450" y="525" text-anchor="middle" font-family="Fraunces, serif" font-weight="600" font-size="28" fill="#2f221c">profile.json</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="demo"><b>▶ IN THE DEMO</b> · one helper per source, in parallel</span><span class="pg"></span></div>
+</div>
+<aside class="notes">This exact diagram is what we'll run in the demo: three helpers gathering data at the same time, merged into one structured file the site is built from.</aside>
+</section>
+
+<!-- =====================================================
+     24 — DEMO ROADMAP
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>Live demo</b> · roadmap</div>
+    <h2 class="reveal" style="--d:1">Let's build your <em>academic portfolio</em></h2>
+    <p class="lede reveal" style="--d:2">From scattered profiles to a live website on GitHub Pages, using every term we just covered.</p>
+    <div class="body">
+        <div class="cols" style="grid-template-columns:.42fr 1.58fr;gap:48px">
+            <div class="reveal" style="--d:3">
+                <div class="label">Inputs</div>
+                <span class="chip">cv.pdf</span><span class="chip">LinkedIn (PDF export)</span><span class="chip">GitHub</span><span class="chip">Google Scholar</span>
+                <div class="label" style="margin-top:30px">Output</div>
+                <span class="chip on">username.github.io</span>
+                <p class="note" style="margin-top:34px">Same tools, your data. You can repeat this tonight.</p>
+            </div>
+            <table class="tbl reveal" style="--d:4">
+                <tr><th>#</th><th>Step</th><th>What happens</th><th>Term</th></tr>
+                <tr><td>1</td><td>Write the brief</td><td>weak prompt → strong prompt</td><td class="term">prompt eng.</td></tr>
+                <tr><td>2</td><td>Plan first</td><td>agent asks questions, proposes a plan</td><td class="term">plan mode</td></tr>
+                <tr><td>3</td><td>Rules + skill</td><td>project rules; a reusable skill, written live</td><td class="term">AGENTS.md · skills</td></tr>
+                <tr><td>4</td><td>Gather data</td><td>parallel helpers read each source</td><td class="term">subagents + MCP</td></tr>
+                <tr><td>5</td><td>Design &amp; build</td><td>design skill + portfolio skill</td><td class="term">skills · agent</td></tr>
+                <tr><td>6</td><td>Verify &amp; ship</td><td>browser check, push to GitHub Pages</td><td class="term">MCP · agent loop</td></tr>
+            </table>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">LinkedIn blocks automated scraping, so we use its "Save to PDF" profile export instead; a good real-world lesson about terms of service.</aside>
+</section>
+
+<!-- =====================================================
+     25 — TAKEAWAYS & RESOURCES
+     ===================================================== -->
+<section class="slide">
+<div class="frame">
+    <div class="hd reveal"><b>Wrap-up</b></div>
+    <h2 class="reveal" style="--d:1">Three things to <em>remember</em></h2>
+    <div class="body">
+        <div class="cols wide-left">
+            <div style="display:flex;flex-direction:column;gap:22px">
+                <div class="card reveal" style="--d:2"><h3><span class="n">01</span>You direct, the agent types</h3><p>…but you own the result. Verify like it's a student's first draft.</p></div>
+                <div class="card reveal" style="--d:3"><h3><span class="n">02</span>Context is everything</h3><p>Prompts, AGENTS.md, skills, MCP and subagents are all ways of feeding the right context.</p></div>
+                <div class="card accent reveal" style="--d:4"><h3><span class="n">03</span>Start small, use git</h3><p>Automate one annoying task this week. Commit before every change.</p></div>
+            </div>
+            <div class="reveal" style="--d:5;display:flex;flex-direction:column;align-self:stretch">
+                <div class="label">Resources</div>
+                <ul class="list" style="font-family:var(--font-mono)">
+                    <li style="font-size:23px">code.claude.com/docs</li>
+                    <li style="font-size:23px">agents.md</li>
+                    <li style="font-size:23px">agentskills.io</li>
+                    <li style="font-size:23px">modelcontextprotocol.io</li>
+                </ul>
+                <div style="margin-top:auto">
+                    <p style="font-family:var(--font-display);font-weight:700;font-size:88px;letter-spacing:-.02em;line-height:1">Let's <em style="color:var(--wine);font-weight:400">build.</em></p>
+                    <p style="font-size:26px;color:var(--muted);font-style:italic;margin-top:12px">Mohamed Al-Begaowe</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="ft"><span>Vibe Coding for Researchers</span><span class="pg"></span></div>
+</div>
+<aside class="notes">Switch to VS Code for the demo now.</aside>
+</section>
+
+</main>
+</div>
+
+<!-- Presenter chrome (outside the 16:9 stage) -->
+<div class="progress" id="progress"></div>
+<div class="notes-panel" id="notesPanel"></div>
+<div class="edit-hotzone" id="editHotzone"></div>
+<button class="edit-toggle" id="editToggle" title="Edit mode (E)">✎ edit · Ctrl+S saves</button>
+
+<script>
+/* ===========================================
+   SLIDE PRESENTATION CONTROLLER
+   Keys: ← → Space PgUp PgDn Home End · N = speaker notes · E = edit mode
+   =========================================== */
+const DECK_KEY = 'vibe-coding-deck-edits-v2'; // bump when regenerating the deck
+
+class SlidePresentation {
+    constructor() {
+        this.stage = document.getElementById('deckStage');
+        this.restoreEdits();
+        this.slides = Array.from(document.querySelectorAll('.slide'));
+        this.current = 0;
+        this.progress = document.getElementById('progress');
+        this.notesPanel = document.getElementById('notesPanel');
+        this.typed = false;
+        this.numberPages();
+        this.setupStageScale();
+        this.setupKeyboard();
+        this.setupWheel();
+        this.setupTouch();
+        const fromHash = parseInt(location.hash.slice(1), 10);
+        this.show(Number.isFinite(fromHash) ? fromHash - 1 : 0);
+    }
+
+    /* fill "07 / 25" into every footer */
+    numberPages() {
+        const total = String(this.slides.length).padStart(2, '0');
+        this.slides.forEach((s, i) => s.querySelectorAll('.pg').forEach(p => {
+            p.textContent = `${String(i + 1).padStart(2, '0')} / ${total}`;
+        }));
+    }
+
+    /* scale the 1920×1080 stage uniformly to fit the window */
+    setupStageScale() {
+        const scale = () => {
+            const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+            const x = (innerWidth - 1920 * k) / 2, y = (innerHeight - 1080 * k) / 2;
+            this.stage.style.transform = `translate(${x}px, ${y}px) scale(${k})`;
+        };
+        scale();
+        addEventListener('resize', scale);
+    }
+
+    setupKeyboard() {
+        document.addEventListener('keydown', e => {
+            if (editor.isActive) { if (e.key === 'Escape') editor.toggle(); return; }
+            const k = e.key;
+            if (['ArrowRight', 'ArrowDown', ' ', 'PageDown', 'Enter'].includes(k)) { e.preventDefault(); this.next(); }
+            else if (['ArrowLeft', 'ArrowUp', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); this.prev(); }
+            else if (k === 'Home') this.show(0);
+            else if (k === 'End') this.show(this.slides.length - 1);
+            else if (k === 'n' || k === 'N') this.notesPanel.classList.toggle('show');
+        });
+    }
+
+    /* wheel navigation, debounced so one flick = one slide */
+    setupWheel() {
+        let lock = false;
+        addEventListener('wheel', e => {
+            if (editor.isActive || lock || Math.abs(e.deltaY) < 20) return;
+            lock = true; setTimeout(() => lock = false, 800);
+            e.deltaY > 0 ? this.next() : this.prev();
+        }, { passive: true });
+    }
+
+    setupTouch() {
+        let x0 = null;
+        addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+        addEventListener('touchend', e => {
+            if (x0 === null || editor.isActive) return;
+            const dx = e.changedTouches[0].clientX - x0;
+            if (Math.abs(dx) > 50) dx < 0 ? this.next() : this.prev();
+            x0 = null;
+        });
+    }
+
+    next() { this.show(this.current + 1); }
+    prev() { this.show(this.current - 1); }
+
+    show(i) {
+        this.current = Math.max(0, Math.min(i, this.slides.length - 1));
+        this.slides.forEach((s, j) => {
+            const on = j === this.current;
+            s.classList.toggle('active', on);
+            s.classList.toggle('visible', on);
+        });
+        this.progress.style.width = `${(this.current + 1) / this.slides.length * 100}%`;
+        history.replaceState(null, '', `#${this.current + 1}`);
+        const n = this.slides[this.current].querySelector('aside.notes');
+        this.notesPanel.innerHTML = `<b>SPEAKER NOTES · ${this.current + 1}/${this.slides.length}</b>${n ? n.innerHTML : '—'}`;
+        if (this.current === 0) this.typePrompt();
+    }
+
+    /* title slide: the prompt types itself once */
+    typePrompt() {
+        const el = document.getElementById('typed');
+        if (!el || this.typed) return;
+        this.typed = true;
+        const text = 'build me a tutorial on vibe coding for researchers';
+        let i = 0;
+        setTimeout(function step() {
+            if (i <= text.length) { el.textContent = text.slice(0, i++); setTimeout(step, 38); }
+        }, 1300);
+    }
+
+    restoreEdits() {
+        try {
+            const saved = JSON.parse(localStorage.getItem(DECK_KEY) || 'null');
+            if (Array.isArray(saved)) {
+                document.querySelectorAll('.slide').forEach((s, i) => { if (saved[i] != null) s.innerHTML = saved[i]; });
+            }
+        } catch (e) { /* storage unavailable — ignore */ }
+    }
+}
+
+/* ===========================================
+   INLINE EDITOR
+   Hover top-left corner or press E · edits autosave locally · Ctrl+S downloads the HTML
+   =========================================== */
+const editor = {
+    isActive: false,
+    toggle() {
+        this.isActive = !this.isActive;
+        const stage = document.getElementById('deckStage');
+        stage.contentEditable = this.isActive ? 'true' : 'false';
+        document.body.classList.toggle('editing', this.isActive);
+        document.getElementById('editToggle').classList.toggle('active', this.isActive);
+        if (!this.isActive) { document.getElementById('editToggle').classList.remove('show'); this.save(); }
+    },
+    save() {
+        try {
+            const data = Array.from(document.querySelectorAll('.slide')).map(s => s.innerHTML);
+            localStorage.setItem(DECK_KEY, JSON.stringify(data));
+        } catch (e) { /* ignore */ }
+    },
+    download() {
+        const clone = document.documentElement.cloneNode(true);
+        clone.querySelector('#deckStage').removeAttribute('contenteditable');
+        clone.querySelector('body').classList.remove('editing');
+        clone.querySelectorAll('.slide').forEach((s, i) => {
+            s.classList.remove('visible');
+            s.classList.toggle('active', i === 0);
+        });
+        const typed = clone.querySelector('#typed'); if (typed) typed.textContent = '';
+        const blob = new Blob(['<!DOCTYPE html>\n' + clone.outerHTML], { type: 'text/html' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = 'index.html'; a.click();
+        URL.revokeObjectURL(a.href);
+    }
+};
+
+(function setupEditing() {
+    const hotzone = document.getElementById('editHotzone');
+    const btn = document.getElementById('editToggle');
+    let hideTimeout = null;
+    const hideLater = () => { hideTimeout = setTimeout(() => { if (!editor.isActive) btn.classList.remove('show'); }, 400); };
+    hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); btn.classList.add('show'); });
+    hotzone.addEventListener('mouseleave', hideLater);
+    btn.addEventListener('mouseenter', () => clearTimeout(hideTimeout));
+    btn.addEventListener('mouseleave', hideLater);
+    hotzone.addEventListener('click', () => editor.toggle());
+    btn.addEventListener('click', () => editor.toggle());
+    document.addEventListener('keydown', e => {
+        if ((e.key === 'e' || e.key === 'E') && !editor.isActive) { e.preventDefault(); editor.toggle(); }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); editor.save(); editor.download(); }
+    });
+    let t = null;
+    document.getElementById('deckStage').addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => editor.save(), 500); });
+})();
+
+const deck = new SlidePresentation();
+</script>
+</body>
+</html>
