@@ -72,4 +72,9 @@ The raw sources (CV and LinkedIn PDFs) and the intermediate data files are **not
 
 ## License and reuse
 
-No license has been chosen yet, so please ask the author before reusing the material. The personal data in `portfolio-maker/data/profile.json` describes a real person and is not for reuse as content.
+You're free to use, adapt and share this material, including for your own tutorials and your own portfolio.
+- **Code** (the site, the slides' HTML/JS, the skill): [MIT](LICENSE)
+- **Content** (slide text, docs, runbook, brief): [CC BY 4.0](LICENSE-CONTENT.md). Just credit the original.
+- **Not licensed:** the personal data in `portfolio-maker/data/profile.json`. Replace it with your own.
+
+The details are in [LICENSE-CONTENT.md](LICENSE-CONTENT.md).

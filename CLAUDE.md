@@ -68,6 +68,6 @@ you are an expert in vibe coding givina an introductry tutorial for reasercher a
   - Docs: `README.md` (overview, folder map, how the demo ran), `docs/REPRODUCE.md` (guide for other researchers), `portfolio-maker/README.md`. No build log (the user didn't want one).
   - **PREFLIGHT.md must NOT be in the repo** (user's decision). It's git-ignored, and the first commit was amended and force-pushed to erase it from history. Keep it local only, and don't link to it from public docs.
   - Git ignores `**/sources/`, `**/data/parts/` and `PREFLIGHT.md`. Commits use the no-reply email (repo-local config).
-  - Open: no license chosen yet (README says to ask the author).
+  - License (user: "it can be used by users"): MIT for code and the skill (`LICENSE`), CC BY 4.0 for content (`LICENSE-CONTENT.md`). The personal data in profile.json is excluded.
 - Rule: do NOT motivate running AI agents on the HPC cluster (no SSH / login-node / "run on HPC" agent use) anywhere in the slides or demo. SLURM content is allowed only as "AI drafts a job script locally, a human reviews it before submitting" (slides 10–11).
 - Slides name Google Scholar as the example publications source (slides 17, 21–24); keep them that way.
